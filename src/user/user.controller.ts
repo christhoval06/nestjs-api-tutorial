@@ -5,10 +5,13 @@ import { GetUser } from '../auth/decorator';
 import { JwtGuard } from '../auth/guard';
 import { EditUserDto, UserDto } from './dto';
 import { UserService } from './user.service';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @UseGuards(JwtGuard)
 @Serialize(UserDto)
 @Controller('users')
+@ApiBearerAuth()
+@ApiTags('user')
 export class UserController {
   constructor(private userService: UserService) {}
 

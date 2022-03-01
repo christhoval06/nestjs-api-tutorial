@@ -1,14 +1,21 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  forwardRef,
+  Inject,
+  Injectable,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime';
 import * as argon from 'argon2';
 import { PrismaService } from '../prisma/prisma.service';
+import { AlertGateway } from '../alert.gateway';
 import { AuthDto } from './dto';
 
 @Injectable()
 export class AuthService {
   constructor(
+    private alertGateway: AlertGateway,
     private prisma: PrismaService,
     private jwt: JwtService,
     private config: ConfigService,
@@ -24,6 +31,7 @@ export class AuthService {
           hash,
         },
       });
+      this.alertGateway.send_sign_up(user.email);
       return this.signToken(user.id, user.email);
     } catch (err) {
       if (err instanceof PrismaClientKnownRequestError) {
@@ -48,7 +56,7 @@ export class AuthService {
     if (!pwMatches) {
       throw new ForbiddenException('Credentials incorret');
     }
-
+    this.alertGateway.send_sign_in(user.email);
     return this.signToken(user.id, user.email);
   }
 
